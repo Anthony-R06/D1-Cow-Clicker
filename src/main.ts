@@ -69,7 +69,7 @@ autoMilkerButton.addEventListener("click", () => {
   money -= 30;
   autoMilkers += 1;
   wallet.textContent = `Money:$${money.toFixed(1)}`;
-  autoMilkerButton.textContent = `Upgrade:$30 (+0.1 Auto-Milks every second)`;
+  autoMilkerButton.textContent = `Upgrade:$30 (+0.1L/s | Owned: ${autoMilkers}`;
 });
 let lastTIme = performance.now();
 function update(now: number) {
@@ -77,6 +77,10 @@ function update(now: number) {
   lastTIme = now;
   milk += autoMilkers * 0.1 * seconds;
   message.textContent = `Milk: ${milk.toFixed(1)}L`;
+  wallet.textContent = `Money:$${money.toFixed(1)}`;
+  upgradeButton.disabled = money < upgradeCost;
+  autoMilkerButton.disabled = money < 30;
+  sellbutton.disabled = milk <= 0;
   requestAnimationFrame(update);
 }
 requestAnimationFrame(update);
