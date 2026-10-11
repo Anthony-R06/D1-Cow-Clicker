@@ -16,6 +16,7 @@ image.width = 300;
 image.style.height = "auto";
 image.style.display = "block";
 image.style.margin = "20px auto";
+image.style.cursor = "pointer";
 
 let milk = 0;
 let milkPerClick = 1;
@@ -29,11 +30,12 @@ button.textContent = "Milk Me!";
 button.type = "button";
 let money = 0;
 
-button.addEventListener("click", (_event: MouseEvent) => {
-  console.log("Button clicked!", button.textContent);
+function milkCow() {
   milk += milkPerClick;
-  message.textContent = `Milk:${milk}L`;
-});
+  message.textContent = `Milk: ${milk.toFixed(1)}L`;
+}
+button.addEventListener("click", milkCow);
+image.addEventListener("click", milkCow);
 
 const wallet = document.createElement("p");
 wallet.textContent = `Money:$${money}`;
