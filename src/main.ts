@@ -1,18 +1,21 @@
 // Vite turns this import into a production-safe URL. Keep it as a file so
 // even this tiny example demonstrates a separately deployed asset.
 // @deno-types="./asset-url.d.ts"
-import tileUrl from "./assets/tile.svg?no-inline";
+import tileUrl from "./assets/semi-flat-sideways-milk-cow.jpg?no-inline";
 
 const app = document.querySelector<HTMLElement>("#app")!;
+app.style.textAlign = "center";
 
 const heading = document.createElement("h1");
 heading.textContent = "Milk a COW!!";
 
 const image = document.createElement("img");
 image.src = tileUrl;
-image.alt = "A teal tile with a cream circle";
-image.width = 96;
-image.height = 96;
+image.alt = "A COW";
+image.width = 300;
+image.style.height = "auto";
+image.style.display = "block";
+image.style.margin = "20px auto";
 
 let milk = 0;
 let milkPerClick = 1;
@@ -26,7 +29,7 @@ button.textContent = "Milk Me!";
 button.type = "button";
 let money = 0;
 
-button.addEventListener("click", (event: MouseEvent) => {
+button.addEventListener("click", (_event: MouseEvent) => {
   console.log("Button clicked!", button.textContent);
   milk += milkPerClick;
   message.textContent = `Milk:${milk}L`;
@@ -60,7 +63,7 @@ upgradeButton.addEventListener("click", () => {
 });
 
 const autoMilkerButton = document.createElement("button");
-autoMilkerButton.textContent = "Upgrade:$30 (+0.1 Auto-Milks every second)";
+autoMilkerButton.textContent = "Upgrade:$30 +0.1 (It Milks every second!!!!!!)";
 
 autoMilkerButton.addEventListener("click", () => {
   if (money < 30) {
@@ -71,8 +74,9 @@ autoMilkerButton.addEventListener("click", () => {
   wallet.textContent = `Money:$${money.toFixed(1)}`;
   autoMilkerButton.textContent = `Upgrade:$30 (+0.1L/s | Owned: ${autoMilkers}`;
 });
+
 let lastTIme = performance.now();
-function update(now: number) {
+function update(now: number) { //Runs every second
   const seconds = (now - lastTIme) / 1000;
   lastTIme = now;
   milk += autoMilkers * 0.1 * seconds;
