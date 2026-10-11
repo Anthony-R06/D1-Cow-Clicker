@@ -15,6 +15,7 @@ image.width = 96;
 image.height = 96;
 
 let milk = 0;
+let milkPerClick = 1;
 const message = document.createElement("p");
 message.textContent = `Milk:${milk}L`;
 
@@ -25,7 +26,7 @@ let money = 0;
 
 button.addEventListener("click", (event: MouseEvent) => {
   console.log("Button clicked!", button.textContent);
-  milk++;
+  milk += milkPerClick;
   message.textContent = `Milk:${milk}L`;
 });
 
@@ -41,5 +42,17 @@ sellbutton.addEventListener("click", () => {
   message.textContent = `Milk:${milk}L`;
   wallet.textContent = `Money:$${money}`;
 });
+const upgradeButton = document.createElement("button");
+upgradeButton.textContent = "Upgrade:$20(+1 L per click)";
 
-app.append(heading, image, message, button, sellbutton, wallet);
+upgradeButton.addEventListener("click", () => {
+  if (money < 20) {
+    return;
+  }
+  money -= 20;
+  milkPerClick += 1;
+  wallet.textContent = `Money:$${money}`;
+  upgradeButton.textContent =
+    `Upgrad: $20 (+1 L per click)| Current: ${milkPerClick}L`;
+});
+app.append(heading, image, message, button, sellbutton, wallet, upgradeButton);
