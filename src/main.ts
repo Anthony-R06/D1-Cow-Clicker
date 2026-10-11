@@ -14,16 +14,32 @@ image.alt = "A teal tile with a cream circle";
 image.width = 96;
 image.height = 96;
 
-const button = document.createElement("button");
-button.textContent = "Milk Me!";
-button.type = "button";
 let milk = 0;
 const message = document.createElement("p");
 message.textContent = `Milk:${milk}L`;
+
+const button = document.createElement("button");
+button.textContent = "Milk Me!";
+button.type = "button";
+let money = 0;
+
 button.addEventListener("click", (event: MouseEvent) => {
-  const target = event.target as HTMLButtonElement;
   console.log("Button clicked!", button.textContent);
   milk++;
+  message.textContent = `Milk:${milk}L`;
 });
 
-app.append(heading, image, message, button);
+const wallet = document.createElement("p");
+wallet.textContent = `Money:$${money}`;
+
+const sellbutton = document.createElement("button");
+sellbutton.textContent = "Sell milk";
+
+sellbutton.addEventListener("click", () => {
+  money += milk;
+  milk = 0;
+  message.textContent = `Milk:${milk}L`;
+  wallet.textContent = `Money:$${money}`;
+});
+
+app.append(heading, image, message, button, sellbutton, wallet);
