@@ -16,6 +16,8 @@ image.height = 96;
 
 let milk = 0;
 let milkPerClick = 1;
+let upgradeCost = 20;
+let autoMilkers = 0;
 const message = document.createElement("p");
 message.textContent = `Milk:${milk}L`;
 
@@ -43,16 +45,48 @@ sellbutton.addEventListener("click", () => {
   wallet.textContent = `Money:$${money}`;
 });
 const upgradeButton = document.createElement("button");
-upgradeButton.textContent = "Upgrade:$20(+1 L per click)";
+upgradeButton.textContent = `Upgrade:$${upgradeCost}(+1 L per click)`;
 
 upgradeButton.addEventListener("click", () => {
-  if (money < 20) {
+  if (money < upgradeCost) {
     return;
   }
-  money -= 20;
+  money -= upgradeCost;
   milkPerClick += 1;
+  upgradeCost = Math.ceil(upgradeCost * 1.5);
   wallet.textContent = `Money:$${money}`;
   upgradeButton.textContent =
-    `Upgrad: $20 (+1 L per click)| Current: ${milkPerClick}L`;
+    `Upgrad: $${upgradeCost} (+1 L per click)| Current: ${milkPerClick}L`;
 });
-app.append(heading, image, message, button, sellbutton, wallet, upgradeButton);
+
+const autoMilkerButton = document.createElement("button");
+autoMilkerButton.textContent = "Upgrade:$30 (+0.1 Auto-Milks every second)";
+
+autoMilkerButton.addEventListener("click", () => {
+  if (money < 30) {
+    return;
+  }
+  money -= 30;
+  autoMilkers += 1;
+  wallet.textContent = `Money:$${money.toFixed(1)}`;
+  autoMilkerButton.textContent = `Upgrade:$30 (+0.1 Auto-Milks every second)`;
+});
+let lastTIme = performance.now();
+function update(now: number) {
+  const seconds = (now - lastTIme) / 1000;
+  lastTIme = now;
+  milk += autoMilkers * 0.1 * seconds;
+  message.textContent = `Milk: ${milk.toFixed(1)}L`;
+  requestAnimationFrame(update);
+}
+requestAnimationFrame(update);
+app.append(
+  heading,
+  image,
+  message,
+  button,
+  sellbutton,
+  wallet,
+  upgradeButton,
+  autoMilkerButton,
+);
