@@ -9,6 +9,11 @@ app.style.textAlign = "center";
 const heading = document.createElement("h1");
 heading.textContent = "Milk a COW!!";
 
+const statsContainer = document.createElement("div");
+statsContainer.style.display = "flex";
+statsContainer.style.justifyContent = "center";
+statsContainer.style.gap = "20px";
+
 const image = document.createElement("img");
 image.src = tileUrl;
 image.alt = "A COW";
@@ -24,6 +29,14 @@ let upgradeCost = 20;
 let autoMilkers = 0;
 const message = document.createElement("p");
 message.textContent = `Milk:${milk}L`;
+
+const upgradeClickLevel = document.createElement("p");
+upgradeClickLevel.textContent = `Milk per Click: ${milkPerClick}`;
+
+const upgradeAutoLevel = document.createElement("p");
+upgradeAutoLevel.textContent = ``;
+
+statsContainer.append(upgradeClickLevel, upgradeAutoLevel);
 
 const button = document.createElement("button");
 button.textContent = "Milk Me!";
@@ -61,7 +74,8 @@ upgradeButton.addEventListener("click", () => {
   upgradeCost = Math.ceil(upgradeCost * 1.5);
   wallet.textContent = `Money:$${money}`;
   upgradeButton.textContent =
-    `Upgrad: $${upgradeCost} (+1 L per click)| Current: ${milkPerClick}L`;
+    `Upgrade: $${upgradeCost} (+1 L per click)| Current: ${milkPerClick}L`;
+  upgradeClickLevel.textContent = `Milk per Click: ${milkPerClick}`;
 });
 
 const autoMilkerButton = document.createElement("button");
@@ -75,6 +89,7 @@ autoMilkerButton.addEventListener("click", () => {
   autoMilkers += 1;
   wallet.textContent = `Money:$${money.toFixed(1)}`;
   autoMilkerButton.textContent = `Upgrade:$30 (+0.1L/s | Owned: ${autoMilkers}`;
+  upgradeAutoLevel.textContent = `+${(autoMilkers * 0.1).toFixed(1)}L/sec`;
 });
 
 let lastTIme = performance.now();
@@ -92,6 +107,7 @@ function update(now: number) { //Runs every second
 requestAnimationFrame(update);
 app.append(
   heading,
+  statsContainer,
   image,
   message,
   button,
