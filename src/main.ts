@@ -27,6 +27,7 @@ let milk = 0;
 let milkPerClick = 1;
 let upgradeCost = 20;
 let autoMilkers = 0;
+let autoMilkerCost = 30;
 const message = document.createElement("p");
 message.textContent = `Milk:${milk}L`;
 
@@ -79,16 +80,19 @@ upgradeButton.addEventListener("click", () => {
 });
 
 const autoMilkerButton = document.createElement("button");
-autoMilkerButton.textContent = "Upgrade:$30 +0.1 (It Milks every second!!!!!!)";
+autoMilkerButton.textContent =
+  `Auto-milker: $${autoMilkerCost} (It milks every second!!!!!!!!) `;
 
 autoMilkerButton.addEventListener("click", () => {
-  if (money < 30) {
+  if (money < autoMilkerCost) {
     return;
   }
-  money -= 30;
+  money -= autoMilkerCost;
   autoMilkers += 1;
+  autoMilkerCost = Math.ceil(autoMilkerCost * 1.5);
   wallet.textContent = `Money:$${money.toFixed(1)}`;
-  autoMilkerButton.textContent = `Upgrade:$30 (+0.1L/s | Owned: ${autoMilkers}`;
+  autoMilkerButton.textContent =
+    `Auto-milker: $${autoMilkerCost} (+0.1 L/s) | Owned: ${autoMilkers}`;
   upgradeAutoLevel.textContent = `+${(autoMilkers * 0.1).toFixed(1)}L/sec`;
 });
 
@@ -100,7 +104,7 @@ function update(now: number) { //Runs every second
   message.textContent = `Milk: ${milk.toFixed(1)}L`;
   wallet.textContent = `Money:$${money.toFixed(1)}`;
   upgradeButton.disabled = money < upgradeCost;
-  autoMilkerButton.disabled = money < 30;
+  autoMilkerButton.disabled = money < autoMilkerCost;
   sellbutton.disabled = milk <= 0;
   requestAnimationFrame(update);
 }
