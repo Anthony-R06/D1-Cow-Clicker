@@ -1,13 +1,16 @@
 // Vite turns this import into a production-safe URL. Keep it as a file so
 // even this tiny example demonstrates a separately deployed asset.
 // @deno-types="./asset-url.d.ts"
-import tileUrl from "./assets/Easy-Cow.webp?no-inline";
+import tileUrl from "./assets/cow.svg?no-inline";
 
 import milkSoundUrl from "./assets/milk-drip-sfx.mp3?no-inline";
 import sellSoundUrl from "./assets/sell-milk-sfx.mp3?no-inline";
 import upgradeSoundUrl from "./assets/upgrade-sfx.mp3?no-inline";
 import upgradeAutoSoundUrl from "./assets/upgrade-auto-sfx.mp3?no-inline";
 import upgradeBucketSoundUrl from "./assets/upgrade-bucket-sfx.mp3?no-inline";
+import grassSoundUrl from "./assets/grass-sfx.mp3?no-inline";
+import appleSoundUrl from "./assets/apple-sfx.mp3?no-inline";
+import deathSoundUrl from "./assets/death-sfx.mp3?no-inline";
 import bgMusicUrl from "./assets/backround-sfx.mp3?no-inline";
 
 const bgMusic = new Audio(bgMusicUrl);
@@ -24,6 +27,12 @@ const upgradeAutoSound = new Audio(upgradeAutoSoundUrl);
 upgradeAutoSound.volume = 0.3;
 const upgradeBucketSound = new Audio(upgradeBucketSoundUrl);
 upgradeBucketSound.volume = 0.05;
+const grassSound = new Audio(grassSoundUrl);
+grassSound.volume = 0.3;
+const appleSound = new Audio(appleSoundUrl);
+appleSound.volume = 0.3;
+const deathSound = new Audio(deathSoundUrl);
+deathSound.volume = 0.5;
 
 const app = document.querySelector<HTMLElement>("#app")!;
 app.style.textAlign = "center";
@@ -83,9 +92,8 @@ const cowScene = document.createElement("div");
 cowScene.style.position = "relative";
 cowScene.style.width = "300px";
 cowScene.style.margin = "20px 0";
-cowScene.style.background =
-  "linear-gradient(to bottom, #e8f6ff 0%, #e8f6ff 65%, #a8cf78 65%, #78aa50 100%)";
-cowScene.style.borderRadius = "20px";
+cowScene.style.background = "transparent";
+cowScene.style.borderRadius = "0";
 
 const udderButton = document.createElement("button");
 udderButton.className = "udder-target";
@@ -166,12 +174,21 @@ function feedCow(cost: number, healing: number) {
 
 const grassButton = document.createElement("button");
 grassButton.textContent = "🌿 Grass: $1 (+20 health)";
-grassButton.addEventListener("click", () => feedCow(1, 20));
+grassButton.addEventListener("click", () => {
+  feedCow(1, 20);
+  grassSound.currentTime = 0;
+  grassSound.play();
+});
 
 const treatButton = document.createElement("button");
 treatButton.textContent = "🍎 Treat: $3 (+50 health)";
-treatButton.addEventListener("click", () => feedCow(3, 50));
+treatButton.addEventListener("click", () => {
+  feedCow(3, 50);
+  appleSound.currentTime = 0;
+  appleSound.play();
+});
 let isMusicPlaying = false;
+let isCowDead = false;
 
 function startBackgroundMusic() {
   if (!isMusicPlaying) {
@@ -179,6 +196,13 @@ function startBackgroundMusic() {
     isMusicPlaying = true;
   }
 }
+function deathSoundStart() {
+  if (!isCowDead) {
+    deathSound.play();
+    isCowDead = true;
+  }
+}
+
 function splashMilk(x: number, y: number, count = 6) {
   for (let i = 0; i < count; i++) {
     const splash = document.createElement("div");
@@ -465,10 +489,15 @@ function update(now: number) { //just incase u dont know what is this for Runs e
   restButton.textContent = isResting ? "Resume milking" : "Let the cow rest";
 
   restButton.disabled = cowHealth <= 0;
-  if (cowHealth <= 0) {
+  if (cowHealth <= 0 && !rescueUsed) {
     healthInfo.textContent = rescueUsed
       ? "Your cow has died."
       : "⚠ Your cow has collapsed! Rescue it for $5. You can still sell stored milk.";
+  } else if (cowHealth <= 0) {
+    bgMusic.pause();
+    bgMusic.currentTime = 0;
+    deathSoundStart();
+    healthInfo.textContent = rescueUsed ? "Your cow has died." : "⚠ GAME OVER";
   } else if (cowHealth <= 30) {
     healthInfo.textContent = `⚠ Health: ${
       cowHealth.toFixed(1)
