@@ -12,11 +12,24 @@ import grassSoundUrl from "./assets/grass-sfx.mp3?no-inline";
 import appleSoundUrl from "./assets/apple-sfx.mp3?no-inline";
 import deathSoundUrl from "./assets/death-sfx.mp3?no-inline";
 import bgMusicUrl from "./assets/backround-sfx.mp3?no-inline";
+import bellSoundUrl from "./assets/bell.mp3?no-inline";
+import mooSoundUrl from "./assets/mooo.mp3?no-inline";
+import ambulanceSoundUrl from "./assets/amb.mp3?no-inline";
 
 const bgMusic = new Audio(bgMusicUrl);
 bgMusic.loop = true;
 bgMusic.volume = 0.075;
+const bellSound = new Audio(bellSoundUrl);
+bellSound.volume = 0.3;
 
+const mooSound = new Audio(mooSoundUrl);
+mooSound.volume = 0.3;
+
+let bucketWasFull = false;
+let lastClickTime = -Infinity;
+let lastMooTime = -Infinity;
+const ambulanceSound = new Audio(ambulanceSoundUrl);
+ambulanceSound.volume = 0.3;
 const milkSound = new Audio(milkSoundUrl);
 milkSound.volume = 0.5;
 const sellSound = new Audio(sellSoundUrl);
@@ -219,6 +232,8 @@ rescueButton.addEventListener("click", () => {
   rescueUsed = true;
   isResting = true;
   saveGame();
+  ambulanceSound.currentTime = 0;
+  ambulanceSound.play();
 });
 function feedCow(cost: number, healing: number) {
   if (money < cost || cowHealth <= 0 || cowHealth >= 100) {
@@ -356,6 +371,15 @@ function milkCow(e: MouseEvent) {
   if (cowHealth <= 0 || isResting) {
     return;
   }
+  const now = performance.now();
+
+  if (now - lastClickTime < 300 && now - lastMooTime > 4000) {
+    mooSound.currentTime = 0;
+    mooSound.play();
+    lastMooTime = now;
+  }
+
+  lastClickTime = now;
   startBackgroundMusic();
   const before = milk;
   milk += Math.min(
@@ -495,6 +519,14 @@ function update(now: number) { //just incase u dont know what is this for Runs e
   message.textContent = `Milk: ${milk.toFixed(1)}L`;
   wallet.textContent = `Money:$${money.toFixed(1)}`;
   sellbutton.disabled = milk <= 0;
+  const bucketIsFull = milk >= bucketCapacity - 0.000001;
+
+  if (bucketIsFull && !bucketWasFull) {
+    bellSound.currentTime = 0;
+    bellSound.play();
+  }
+
+  bucketWasFull = bucketIsFull;
   bucketInfo.textContent = `Bucket: ${
     milk.toFixed(1)
   } / ${upgradeState.bucketCapacity} L`;
@@ -518,7 +550,7 @@ function update(now: number) { //just incase u dont know what is this for Runs e
     deathSoundStart();
     healthInfo.textContent = rescueUsed ? "Your cow has died." : "⚠ GAME OVER";
   } else if (cowHealth <= 30) {
-    healthInfo.textContent = `⚠ Health: ${
+    healthInfo.textContent = `Warning!!!! Health: ${
       cowHealth.toFixed(1)
     }/100 — feed your cow or let it rest!`;
   } else {
