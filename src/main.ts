@@ -113,6 +113,45 @@ function update(now: number) { //Runs every second
   requestAnimationFrame(update);
 }
 requestAnimationFrame(update);
+
+function saveGame() {
+  const progress = {
+    milk,
+    money,
+    milkPerClick,
+    upgradeCost,
+    autoMilkers,
+    autoMilkerCost,
+  };
+  localStorage.setItem("milkGameProgress", JSON.stringify(progress));
+}
+const savedGame = localStorage.getItem("milkGameProgress");
+
+if (savedGame !== null) {
+  try {
+    const progress = JSON.parse(savedGame);
+
+    milk = progress.milk;
+    money = progress.money;
+    milkPerClick = progress.milkPerClick;
+    upgradeCost = progress.upgradeCost;
+    autoMilkers = progress.autoMilkers;
+    autoMilkerCost = progress.autoMilkerCost;
+
+    upgradeClickLevel.textContent = `Milk per Click: ${milkPerClick}`;
+    upgradeAutoLevel.textContent = `+${(autoMilkers * 0.1).toFixed(1)}L/sec`;
+
+    upgradeButton.textContent =
+      `Upgrade: $${upgradeCost} (+1 L per click) | Current: ${milkPerClick}L`;
+
+    autoMilkerButton.textContent =
+      `Auto-milker: $${autoMilkerCost} (+0.1 L/s) | Owned: ${autoMilkers}`;
+  } catch {
+    console.log("Could not load saved progress.");
+  }
+}
+setInterval(saveGame, 5000);
+
 app.append(
   heading,
   statsContainer,
