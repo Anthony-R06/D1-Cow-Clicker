@@ -3,6 +3,28 @@
 // @deno-types="./asset-url.d.ts"
 import tileUrl from "./assets/semi-flat-sideways-milk-cow.jpg?no-inline";
 
+import milkSoundUrl from "./assets/milk-drip-sfx.mp3?no-inline";
+import sellSoundUrl from "./assets/sell-milk-sfx.mp3?no-inline";
+import upgradeSoundUrl from "./assets/upgrade-sfx.mp3?no-inline";
+import upgradeAutoSoundUrl from "./assets/upgrade-auto-sfx.mp3?no-inline";
+import upgradeBucketSoundUrl from "./assets/upgrade-bucket-sfx.mp3?no-inline";
+import bgMusicUrl from "./assets/backround-sfx.mp3?no-inline";
+
+const bgMusic = new Audio(bgMusicUrl);
+bgMusic.loop = true;
+bgMusic.volume = 0.075;
+
+const milkSound = new Audio(milkSoundUrl);
+milkSound.volume = 0.5;
+const sellSound = new Audio(sellSoundUrl);
+sellSound.volume = 0.1;
+const upgradeSound = new Audio(upgradeSoundUrl);
+upgradeSound.volume = 0.1;
+const upgradeAutoSound = new Audio(upgradeAutoSoundUrl);
+upgradeAutoSound.volume = 0.3;
+const upgradeBucketSound = new Audio(upgradeBucketSoundUrl);
+upgradeBucketSound.volume = 0.05;
+
 const app = document.querySelector<HTMLElement>("#app")!;
 app.style.textAlign = "center";
 document.body.style.backgroundColor = "#ffffff";
@@ -76,7 +98,17 @@ button.textContent = "Milk Me!";
 button.type = "button";
 let money = 0;
 
+let isMusicPlaying = false;
+
+function startBackgroundMusic() {
+  if (!isMusicPlaying) {
+    bgMusic.play();
+    isMusicPlaying = true;
+  }
+}
+
 function milkCow(e: MouseEvent) {
+  startBackgroundMusic();
   const before = milk;
   milk = Math.min(bucketCapacity, milk + milkPerClick);
   const gained = milk - before;
@@ -93,6 +125,8 @@ function milkCow(e: MouseEvent) {
       e.clientY,
       "#4a7a3a",
     );
+    milkSound.currentTime = 0;
+    milkSound.play();
   }
 }
 function spawnFloatingText(text: string, x: number, y: number, color: string) {
@@ -130,7 +164,10 @@ sellbutton.addEventListener("click", () => {
   milk = 0;
   message.textContent = `Milk:${milk}L`;
   wallet.textContent = `Money:$${money}`;
+  sellSound.currentTime = 0;
+  sellSound.play();
 });
+
 const upgradeButton = document.createElement("button");
 upgradeButton.textContent = `Upgrade:$${upgradeCost}(+0.05 L per click)`;
 
@@ -147,6 +184,9 @@ upgradeButton.addEventListener("click", () => {
       milkPerClick.toFixed(2)
     }L`;
   upgradeClickLevel.textContent = `Milk per Click: ${milkPerClick.toFixed(2)}L`;
+
+  upgradeSound.currentTime = 0;
+  upgradeSound.play();
 });
 
 const autoMilkerButton = document.createElement("button");
@@ -164,6 +204,8 @@ autoMilkerButton.addEventListener("click", () => {
   autoMilkerButton.textContent =
     `Auto-milker: $${autoMilkerCost} (+0.1 L/s) | Owned: ${autoMilkers}`;
   upgradeAutoLevel.textContent = `+${(autoMilkers * 0.1).toFixed(1)}L/sec`;
+  upgradeAutoSound.currentTime = 0;
+  upgradeAutoSound.play();
 });
 
 const bucketInfo = document.createElement("p");
@@ -244,6 +286,8 @@ bucketButton.addEventListener("click", () => {
   wallet.textContent = `Money:$${money.toFixed(1)}`;
   bucketButton.textContent = `Bigger bucket: $${bucketCost} (+5 L)`;
   bucketInfo.textContent = `Bucket: ${milk.toFixed(1)} / ${bucketCapacity} L`;
+  upgradeBucketSound.currentTime = 0;
+  upgradeBucketSound.play();
 });
 function saveGame() {
   const progress = {
