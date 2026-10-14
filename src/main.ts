@@ -23,7 +23,7 @@ const bellSound = new Audio(bellSoundUrl);
 bellSound.volume = 0.3;
 
 const mooSound = new Audio(mooSoundUrl);
-mooSound.volume = 0.3;
+mooSound.volume = 0.15;
 
 let bucketWasFull = false;
 let lastClickTime = -Infinity;
@@ -519,7 +519,7 @@ function update(now: number) { //just incase u dont know what is this for Runs e
   message.textContent = `Milk: ${milk.toFixed(1)}L`;
   wallet.textContent = `Money:$${money.toFixed(1)}`;
   sellbutton.disabled = milk <= 0;
-  const bucketIsFull = milk >= bucketCapacity - 0.000001;
+  const bucketIsFull = milk >= upgradeState.bucketCapacity - 0.000001;
 
   if (bucketIsFull && !bucketWasFull) {
     bellSound.currentTime = 0;
