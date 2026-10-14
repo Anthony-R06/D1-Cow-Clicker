@@ -15,6 +15,7 @@ import bgMusicUrl from "./assets/backround-sfx.mp3?no-inline";
 import bellSoundUrl from "./assets/bell.mp3?no-inline";
 import mooSoundUrl from "./assets/mooo.mp3?no-inline";
 import ambulanceSoundUrl from "./assets/amb.mp3?no-inline";
+import snoringSoundUrl from "./assets/snoring.mp3?no-inline";
 
 const bgMusic = new Audio(bgMusicUrl);
 bgMusic.loop = true;
@@ -179,6 +180,10 @@ let cowHealth = 100;
 let rescueUsed = false;
 let isResting = false;
 
+const snoringSound = new Audio(snoringSoundUrl);
+snoringSound.loop = true;
+snoringSound.volume = 0.5;
+
 const upgradeState: Record<Upgrade["target"], number> = {
   milkPerClick: 0.1,
   autoMilkers: 0,
@@ -188,11 +193,19 @@ const upgradeState: Record<Upgrade["target"], number> = {
 const restButton = document.createElement("button");
 restButton.textContent = "Let the cow rest";
 restButton.addEventListener("click", () => {
-  if (cowHealth <= 0) {
-    return;
-  }
-
-  isResting = !isResting;
+    if (cowHealth <= 0) {
+        return;
+    }
+    isResting = !isResting;
+    if (isResting) {
+        snoringSound.currentTime = 0;
+        snoringSound.play();
+        restButton.textContent = "Wake the cow";
+    } else {
+        snoringSound.pause();
+        snoringSound.currentTime = 0;
+        restButton.textContent = "Let the cow rest";
+    }
 });
 const healthInfo = document.createElement("p");
 const message = document.createElement("p");
