@@ -1,7 +1,7 @@
 // Vite turns this import into a production-safe URL. Keep it as a file so
 // even this tiny example demonstrates a separately deployed asset.
 // @deno-types="./asset-url.d.ts"
-import tileUrl from "./assets/cow.png?no-inline";
+import tileUrl from "./assets/Easy-Cow.webp?no-inline";
 
 import milkSoundUrl from "./assets/milk-drip-sfx.mp3?no-inline";
 import sellSoundUrl from "./assets/sell-milk-sfx.mp3?no-inline";
@@ -92,10 +92,10 @@ udderButton.className = "udder-target";
 udderButton.type = "button";
 udderButton.setAttribute("aria-label", "Milk the cow");
 udderButton.style.position = "absolute";
-udderButton.style.left = "63%";
-udderButton.style.top = "40%";
-udderButton.style.width = "17%";
-udderButton.style.height = "15%";
+udderButton.style.left = "64%";
+udderButton.style.top = "60%";
+udderButton.style.width = "15%";
+udderButton.style.height = "13%";
 udderButton.style.padding = "0";
 udderButton.style.background = "rgba(255, 170, 190, 0.25)";
 udderButton.style.border = "2px dashed #d87991";
@@ -384,7 +384,7 @@ const bucketInfo = document.createElement("p");
 const bucketVisual = document.createElement("div");
 bucketVisual.style.position = "absolute";
 bucketVisual.style.left = "71.5%";
-bucketVisual.style.top = "75%";
+bucketVisual.style.top = "85%";
 bucketVisual.style.transform = "translateX(-50%)";
 bucketVisual.style.width = "60px";
 bucketVisual.style.height = "80px";
