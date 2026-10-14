@@ -100,13 +100,13 @@ udderButton.className = "udder-target";
 udderButton.type = "button";
 udderButton.setAttribute("aria-label", "Milk the cow");
 udderButton.style.position = "absolute";
-udderButton.style.left = "64%";
-udderButton.style.top = "60%";
-udderButton.style.width = "15%";
-udderButton.style.height = "13%";
+udderButton.style.left = "62%";
+udderButton.style.top = "58%";
+udderButton.style.width = "19%";
+udderButton.style.height = "17%";
 udderButton.style.padding = "0";
-udderButton.style.background = "rgba(255, 170, 190, 0.25)";
-udderButton.style.border = "2px dashed #d87991";
+udderButton.style.background = "transparent";
+udderButton.style.border = "none";
 udderButton.style.borderRadius = "50%";
 udderButton.style.cursor = "grab";
 
@@ -560,7 +560,7 @@ if (savedGame !== null) {
     autoMilkers = progress.autoMilkers;
     autoMilkerCost = progress.autoMilkerCost;
     bucketCapacity = progress.bucketCapacity ?? 5;
-    bucketCost = progress.bucketCost ?? 10;
+    bucketCost = progress.bucketCost ?? 3;
 
     upgradeClickLevel.textContent = `Milk per Click: ${milkPerClick}`;
     upgradeAutoLevel.textContent = `+${(autoMilkers * 0.1).toFixed(1)}L/sec`;
@@ -619,6 +619,17 @@ farmArea.style.flexWrap = "wrap";
 farmArea.style.gap = "24px";
 
 farmArea.append(feedPanel, cowScene);
+const restartButton = document.createElement("button");
+restartButton.textContent = "Restart game";
+
+restartButton.addEventListener("click", () => {
+  if (!confirm("Restart and clear all game progress?")) {
+    return;
+  }
+
+  localStorage.removeItem("milkGameProgress");
+  location.reload();
+});
 app.append(
   heading,
   wallet,
@@ -630,5 +641,6 @@ app.append(
   button,
   sellbutton,
   restButton,
+  restartButton,
   shop,
 );
