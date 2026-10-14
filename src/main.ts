@@ -165,10 +165,56 @@ autoMilkerButton.addEventListener("click", () => {
     `Auto-milker: $${autoMilkerCost} (+0.1 L/s) | Owned: ${autoMilkers}`;
   upgradeAutoLevel.textContent = `+${(autoMilkers * 0.1).toFixed(1)}L/sec`;
 });
+
 const bucketInfo = document.createElement("p");
+const bucketVisual = document.createElement("div");
+bucketVisual.style.width = "60px";
+bucketVisual.style.height = "80px";
+bucketVisual.style.margin = "0 auto";
+bucketVisual.style.position = "relative";
+bucketVisual.style.border = "4px solid #3e3529";
+bucketVisual.style.borderRadius = "0 0 15px 15px";
+bucketVisual.style.backgroundColor = "#fff";
+
+const bucketHandle = document.createElementNS(
+  "http://www.w3.org/2000/svg",
+  "svg",
+);
+bucketHandle.setAttribute("width", "50");
+bucketHandle.setAttribute("height", "22");
+bucketHandle.style.position = "absolute";
+bucketHandle.style.top = "-20px";
+bucketHandle.style.left = "50%";
+bucketHandle.style.transform = "translateX(-50%)";
+bucketHandle.style.overflow = "visible";
+
+const handlePath = document.createElementNS(
+  "http://www.w3.org/2000/svg",
+  "path",
+);
+handlePath.setAttribute("d", "M 3 22 Q 3 2, 25 2 Q 47 2, 47 22");
+handlePath.setAttribute("fill", "none");
+handlePath.setAttribute("stroke", "#3e3529");
+handlePath.setAttribute("stroke-width", "4");
+handlePath.setAttribute("stroke-linecap", "round");
+bucketHandle.appendChild(handlePath);
+
+bucketVisual.appendChild(bucketHandle);
+
+const milkFill = document.createElement("div");
+milkFill.style.width = "100%";
+milkFill.style.height = "0%";
+milkFill.style.position = "absolute";
+milkFill.style.bottom = "0";
+milkFill.style.left = "0";
+milkFill.style.backgroundColor = "#f7f2e7";
+milkFill.style.transition = "height 0.3s ease";
+milkFill.style.borderRadius = "0 0 11px 11px";
+bucketVisual.appendChild(milkFill);
+
 const bucketButton = document.createElement("button");
 let lastTIme = performance.now();
-function update(now: number) { //Runs every second
+function update(now: number) { //just incase u dont know what is this for Runs every second and updates the milk and money values based on the auto-milkers and other factors
   const seconds = (now - lastTIme) / 1000;
   lastTIme = now;
   milk = Math.min(bucketCapacity, milk + autoMilkers * 0.1 * seconds);
@@ -178,6 +224,8 @@ function update(now: number) { //Runs every second
   autoMilkerButton.disabled = money < autoMilkerCost;
   sellbutton.disabled = milk <= 0;
   bucketInfo.textContent = `Bucket: ${milk.toFixed(1)} / ${bucketCapacity} L`;
+  const fillPercentage = (milk / bucketCapacity) * 100;
+  milkFill.style.height = `${Math.min(100, fillPercentage)}%`;
 
   bucketButton.textContent = `Bigger bucket: $${bucketCost} (+5 L)`;
 
@@ -264,6 +312,7 @@ app.append(
   image,
   message,
   bucketInfo,
+  bucketVisual,
   button,
   sellbutton,
   shop,
