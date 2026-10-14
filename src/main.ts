@@ -46,8 +46,12 @@ let money = 0;
 
 function milkCow() {
   milk += milkPerClick;
-  message.textContent = `Milk: ${milk.toFixed(1)}L`;
+  message.textContent = `Milk:${milk.toFixed(1)}L`;
+  image.animate([{ transform: "scale(1)" }, { transform: "scale(0.9)" }, {
+    transform: "scale(1)",
+  }], { duration: 150, easing: "ease-in-out" });
 }
+
 button.addEventListener("click", milkCow);
 image.addEventListener("click", milkCow);
 
