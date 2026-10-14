@@ -1,7 +1,7 @@
 // Vite turns this import into a production-safe URL. Keep it as a file so
 // even this tiny example demonstrates a separately deployed asset.
 // @deno-types="./asset-url.d.ts"
-import tileUrl from "./assets/semi-flat-sideways-milk-cow.jpg?no-inline";
+import tileUrl from "./assets/cow.png?no-inline";
 
 import milkSoundUrl from "./assets/milk-drip-sfx.mp3?no-inline";
 import sellSoundUrl from "./assets/sell-milk-sfx.mp3?no-inline";
@@ -27,7 +27,9 @@ upgradeBucketSound.volume = 0.05;
 
 const app = document.querySelector<HTMLElement>("#app")!;
 app.style.textAlign = "center";
-document.body.style.backgroundColor = "#ffffff";
+document.body.style.background =
+  "linear-gradient(to bottom, #dff3ff 0%, #edf9ff 45%, #b6d887 45%, #79ad58 100%)";
+document.body.style.minHeight = "100vh";
 document.body.style.color = "#3e3529";
 document.body.style.fontFamily = "Arial, sans-serif";
 document.body.style.margin = "0";
@@ -37,13 +39,13 @@ style.textContent = `
   button {
     transition: transform 0.1s ease, box-shadow 0.15s ease, background-color 0.15s ease;
   }
-  button:not(:disabled):hover {
+  button:not(.udder-target):not(:disabled):hover {
     background-color: #d4e3c8 !important;
     transform: translateY(-2px);
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
     cursor: pointer;
   }
-  button:not(:disabled):active {
+  button:not(.udder-target):not(:disabled):active {
     transform: translateY(0) scale(0.97);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   }
@@ -73,15 +75,56 @@ image.width = 300;
 image.style.height = "auto";
 image.style.display = "block";
 image.style.margin = "20px auto";
-image.style.cursor = "pointer";
+image.style.cursor = "default";
+image.style.margin = "0";
+image.style.width = "100%";
+
+const cowScene = document.createElement("div");
+cowScene.style.position = "relative";
+cowScene.style.width = "300px";
+cowScene.style.margin = "20px 0";
+cowScene.style.background =
+  "linear-gradient(to bottom, #e8f6ff 0%, #e8f6ff 65%, #a8cf78 65%, #78aa50 100%)";
+cowScene.style.borderRadius = "20px";
+
+const udderButton = document.createElement("button");
+udderButton.className = "udder-target";
+udderButton.type = "button";
+udderButton.setAttribute("aria-label", "Milk the cow");
+udderButton.style.position = "absolute";
+udderButton.style.left = "63%";
+udderButton.style.top = "40%";
+udderButton.style.width = "17%";
+udderButton.style.height = "15%";
+udderButton.style.padding = "0";
+udderButton.style.background = "rgba(255, 170, 190, 0.25)";
+udderButton.style.border = "2px dashed #d87991";
+udderButton.style.borderRadius = "50%";
+udderButton.style.cursor = "grab";
+
+cowScene.append(image, udderButton);
 
 let milk = 0;
+let cowHealth = 100;
+let rescueUsed = false;
+let isResting = false;
 let milkPerClick = 0.1;
 let bucketCapacity = 5;
 let bucketCost = 3;
 let upgradeCost = 2;
 let autoMilkers = 0;
 let autoMilkerCost = 10;
+
+const restButton = document.createElement("button");
+restButton.textContent = "Let the cow rest";
+restButton.addEventListener("click", () => {
+  if (cowHealth <= 0) {
+    return;
+  }
+
+  isResting = !isResting;
+});
+const healthInfo = document.createElement("p");
 const message = document.createElement("p");
 message.textContent = `Milk:${milk}L`;
 
@@ -97,7 +140,37 @@ const button = document.createElement("button");
 button.textContent = "Milk Me!";
 button.type = "button";
 let money = 0;
+const rescueButton = document.createElement("button");
+rescueButton.textContent = "🚑 Rescue cow: $5 (+30 health)";
 
+rescueButton.addEventListener("click", () => {
+  if (cowHealth > 0 || rescueUsed || money < 5) {
+    return;
+  }
+
+  money -= 5;
+  cowHealth = 30;
+  rescueUsed = true;
+  isResting = true;
+  saveGame();
+});
+function feedCow(cost: number, healing: number) {
+  if (money < cost || cowHealth <= 0 || cowHealth >= 100) {
+    return;
+  }
+
+  money -= cost;
+  cowHealth = Math.min(100, cowHealth + healing);
+  saveGame();
+}
+
+const grassButton = document.createElement("button");
+grassButton.textContent = "🌿 Grass: $1 (+20 health)";
+grassButton.addEventListener("click", () => feedCow(1, 20));
+
+const treatButton = document.createElement("button");
+treatButton.textContent = "🍎 Treat: $3 (+50 health)";
+treatButton.addEventListener("click", () => feedCow(3, 50));
 let isMusicPlaying = false;
 
 function startBackgroundMusic() {
@@ -106,12 +179,110 @@ function startBackgroundMusic() {
     isMusicPlaying = true;
   }
 }
+function splashMilk(x: number, y: number, count = 6) {
+  for (let i = 0; i < count; i++) {
+    const splash = document.createElement("div");
+    splash.style.position = "fixed";
+    splash.style.left = `${x - 3}px`;
+    splash.style.top = `${y - 3}px`;
+    splash.style.width = "6px";
+    splash.style.height = "6px";
+    splash.style.backgroundColor = "#fffdf5";
+    splash.style.border = "1px solid #b9c9d4";
+    splash.style.borderRadius = "50%";
+    splash.style.pointerEvents = "none";
+    splash.style.zIndex = "1000";
+    document.body.appendChild(splash);
 
+    const dx = (Math.random() - 0.5) * 80;
+    const rise = 12 + Math.random() * 20;
+
+    const animation = splash.animate(
+      [
+        { transform: "translate(0, 0)", opacity: 1 },
+        {
+          transform: `translate(${dx * 0.5}px, ${-rise}px)`,
+          opacity: 1,
+          offset: 0.45,
+        },
+        {
+          transform: `translate(${dx}px, 10px) scale(0.4)`,
+          opacity: 0,
+        },
+      ],
+      {
+        duration: 350,
+        easing: "linear",
+        fill: "forwards",
+      },
+    );
+
+    animation.onfinish = () => splash.remove();
+  }
+}
+function spawnMilkDrop() {
+  const source = udderButton.getBoundingClientRect();
+  const target = bucketVisual.getBoundingClientRect();
+
+  const startX = source.left + source.width / 2;
+  const startY = source.bottom;
+  splashMilk(startX, startY, 3);
+  const endX = target.left + target.width / 2;
+  const endY = target.top + 12;
+
+  const drop = document.createElement("div");
+  drop.style.position = "fixed";
+  drop.style.left = `${startX - 5}px`;
+  drop.style.top = `${startY}px`;
+  drop.style.width = "10px";
+  drop.style.height = "16px";
+  drop.style.backgroundColor = "#fffdf5";
+  drop.style.border = "1px solid #b9c9d4";
+  drop.style.borderRadius = "50%";
+  drop.style.pointerEvents = "none";
+  drop.style.zIndex = "1000";
+
+  document.body.appendChild(drop);
+
+  const animation = drop.animate(
+    [
+      { transform: "translate(0, 0)", opacity: 1 },
+      {
+        transform: `translate(${endX - startX}px, ${endY - startY}px)`,
+        opacity: 1,
+      },
+      {
+        transform: `translate(${endX - startX}px, ${
+          endY - startY
+        }px) scale(1.5, 0.3)`,
+        opacity: 0,
+      },
+    ],
+    {
+      duration: 600,
+      easing: "ease-in",
+      fill: "forwards",
+    },
+  );
+
+  animation.onfinish = () => {
+    drop.remove();
+    splashMilk(endX, endY);
+  };
+}
 function milkCow(e: MouseEvent) {
+  if (cowHealth <= 0 || isResting) {
+    return;
+  }
   startBackgroundMusic();
   const before = milk;
-  milk = Math.min(bucketCapacity, milk + milkPerClick);
+  milk += Math.min(
+    milkPerClick,
+    Math.max(0, bucketCapacity - milk),
+    cowHealth / 5,
+  );
   const gained = milk - before;
+  cowHealth = Math.max(0, cowHealth - gained * 5);
 
   message.textContent = `Milk:${milk.toFixed(1)}L`;
   image.animate([{ transform: "scale(1)" }, { transform: "scale(0.9)" }, {
@@ -127,6 +298,7 @@ function milkCow(e: MouseEvent) {
     );
     milkSound.currentTime = 0;
     milkSound.play();
+    spawnMilkDrop();
   }
 }
 function spawnFloatingText(text: string, x: number, y: number, color: string) {
@@ -151,7 +323,7 @@ function spawnFloatingText(text: string, x: number, y: number, color: string) {
   setTimeout(() => el.remove(), 800);
 }
 button.addEventListener("click", milkCow);
-image.addEventListener("click", milkCow);
+udderButton.addEventListener("click", milkCow);
 
 const wallet = document.createElement("p");
 wallet.textContent = `Money:$${money}`;
@@ -210,10 +382,13 @@ autoMilkerButton.addEventListener("click", () => {
 
 const bucketInfo = document.createElement("p");
 const bucketVisual = document.createElement("div");
+bucketVisual.style.position = "absolute";
+bucketVisual.style.left = "71.5%";
+bucketVisual.style.top = "75%";
+bucketVisual.style.transform = "translateX(-50%)";
 bucketVisual.style.width = "60px";
 bucketVisual.style.height = "80px";
 bucketVisual.style.margin = "0 auto";
-bucketVisual.style.position = "relative";
 bucketVisual.style.border = "4px solid #3e3529";
 bucketVisual.style.borderRadius = "0 0 15px 15px";
 bucketVisual.style.backgroundColor = "#fff";
@@ -253,13 +428,26 @@ milkFill.style.backgroundColor = "#f7f2e7";
 milkFill.style.transition = "height 0.3s ease";
 milkFill.style.borderRadius = "0 0 11px 11px";
 bucketVisual.appendChild(milkFill);
+cowScene.appendChild(bucketVisual);
 
 const bucketButton = document.createElement("button");
 let lastTIme = performance.now();
 function update(now: number) { //just incase u dont know what is this for Runs every second and updates the milk and money values based on the auto-milkers and other factors
   const seconds = (now - lastTIme) / 1000;
   lastTIme = now;
-  milk = Math.min(bucketCapacity, milk + autoMilkers * 0.1 * seconds);
+  if (isResting) {
+    if (cowHealth > 0) {
+      cowHealth = Math.min(100, cowHealth + 2 * seconds);
+    }
+  } else {
+    const autoGained = Math.min(
+      autoMilkers * 0.1 * seconds,
+      Math.max(0, bucketCapacity - milk),
+      cowHealth > 0 ? Infinity : 0,
+    );
+
+    milk += autoGained;
+  }
   message.textContent = `Milk: ${milk.toFixed(1)}L`;
   wallet.textContent = `Money:$${money.toFixed(1)}`;
   upgradeButton.disabled = money < upgradeCost;
@@ -270,8 +458,30 @@ function update(now: number) { //just incase u dont know what is this for Runs e
   milkFill.style.height = `${Math.min(100, fillPercentage)}%`;
 
   bucketButton.textContent = `Bigger bucket: $${bucketCost} (+5 L)`;
-
   bucketButton.disabled = money < bucketCost;
+  button.disabled = cowHealth <= 0 || isResting || milk >= bucketCapacity;
+  udderButton.disabled = button.disabled;
+
+  restButton.textContent = isResting ? "Resume milking" : "Let the cow rest";
+
+  restButton.disabled = cowHealth <= 0;
+  if (cowHealth <= 0) {
+    healthInfo.textContent = rescueUsed
+      ? "Your cow has died."
+      : "⚠ Your cow has collapsed! Rescue it for $5. You can still sell stored milk.";
+  } else if (cowHealth <= 30) {
+    healthInfo.textContent = `⚠ Health: ${
+      cowHealth.toFixed(1)
+    }/100 — feed your cow or let it rest!`;
+  } else {
+    healthInfo.textContent = `Cow health: ${cowHealth.toFixed(1)} / 100`;
+  }
+
+  rescueButton.hidden = cowHealth > 0 || rescueUsed;
+  rescueButton.disabled = money < 5;
+  healthInfo.style.color = cowHealth <= 30 ? "#b83232" : "#4a7a3a";
+  grassButton.disabled = money < 1 || cowHealth <= 0 || cowHealth >= 100;
+  treatButton.disabled = money < 3 || cowHealth <= 0 || cowHealth >= 100;
   requestAnimationFrame(update);
 }
 requestAnimationFrame(update);
@@ -299,6 +509,9 @@ function saveGame() {
     autoMilkerCost,
     bucketCapacity,
     bucketCost,
+    cowHealth,
+    isResting,
+    rescueUsed,
   };
   localStorage.setItem("milkGameProgress", JSON.stringify(progress));
 }
@@ -309,6 +522,9 @@ if (savedGame !== null) {
     const progress = JSON.parse(savedGame);
 
     milk = progress.milk;
+    cowHealth = progress.cowHealth ?? 100;
+    rescueUsed = progress.rescueUsed ?? false;
+    isResting = progress.isResting ?? false;
     money = progress.money;
     milkPerClick = progress.milkPerClick;
     upgradeCost = progress.upgradeCost;
@@ -349,15 +565,41 @@ for (const item of [upgradeButton, autoMilkerButton, bucketButton]) {
   item.style.borderRadius = "12px";
   item.style.fontSize = "15px";
 }
+const feedPanel = document.createElement("div");
+feedPanel.style.display = "flex";
+feedPanel.style.flexDirection = "column";
+feedPanel.style.gap = "12px";
+feedPanel.style.width = "160px";
+
+const feedTitle = document.createElement("h3");
+feedTitle.textContent = "Care for your cow";
+feedPanel.append(feedTitle, grassButton, treatButton, rescueButton);
+
+for (const item of [grassButton, treatButton]) {
+  item.style.padding = "16px";
+  item.style.borderRadius = "12px";
+  item.style.border = "1px solid #b5c7aa";
+  item.style.backgroundColor = "#e0ead8";
+}
+
+const farmArea = document.createElement("div");
+farmArea.style.display = "flex";
+farmArea.style.justifyContent = "center";
+farmArea.style.alignItems = "center";
+farmArea.style.flexWrap = "wrap";
+farmArea.style.gap = "24px";
+
+farmArea.append(feedPanel, cowScene);
 app.append(
   heading,
   wallet,
   statsContainer,
-  image,
+  farmArea,
+  healthInfo,
   message,
   bucketInfo,
-  bucketVisual,
   button,
   sellbutton,
+  restButton,
   shop,
 );
