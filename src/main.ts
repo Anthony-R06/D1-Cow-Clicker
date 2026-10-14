@@ -112,16 +112,65 @@ udderButton.style.cursor = "grab";
 
 cowScene.append(image, udderButton);
 
+type Upgrade = {
+  id: string;
+  name: string;
+  description: string;
+  cost: number;
+  costMultiplier: number;
+  target: "milkPerClick" | "autoMilkers" | "bucketCapacity";
+  amount: number;
+  sound: HTMLAudioElement;
+  legacyCostKey?: "upgradeCost" | "autoMilkerCost" | "bucketCost";
+};
+const upgrades: Upgrade[] = [
+  {
+    id: "click",
+    name: "Milk per Click",
+    description: "+0.05 L per click",
+    cost: 2,
+    costMultiplier: 1.5,
+    target: "milkPerClick",
+    amount: 0.05,
+    sound: upgradeSound,
+    legacyCostKey: "upgradeCost",
+  },
+  {
+    id: "auto",
+    name: "Auto-milker",
+    description: "+0.1 L/s",
+    cost: 10,
+    costMultiplier: 1.5,
+    target: "autoMilkers",
+    amount: 1,
+    sound: upgradeAutoSound,
+    legacyCostKey: "autoMilkerCost",
+  },
+  {
+    id: "bucket",
+    name: "Bigger bucket",
+    description: "+5 L capacity",
+    cost: 3,
+    costMultiplier: 1.5,
+    target: "bucketCapacity",
+    amount: 5,
+    sound: upgradeBucketSound,
+    legacyCostKey: "bucketCost",
+  },
+];
+
+const upgradeButtons = new Map<string, HTMLButtonElement>();
+
 let milk = 0;
 let cowHealth = 100;
 let rescueUsed = false;
 let isResting = false;
-let milkPerClick = 0.1;
-let bucketCapacity = 5;
-let bucketCost = 3;
-let upgradeCost = 2;
-let autoMilkers = 0;
-let autoMilkerCost = 10;
+
+const upgradeState: Record<Upgrade["target"], number> = {
+  milkPerClick: 0.1,
+  autoMilkers: 0,
+  bucketCapacity: 5,
+};
 
 const restButton = document.createElement("button");
 restButton.textContent = "Let the cow rest";
@@ -137,12 +186,21 @@ const message = document.createElement("p");
 message.textContent = `Milk:${milk}L`;
 
 const upgradeClickLevel = document.createElement("p");
-upgradeClickLevel.textContent = `Milk per Click: ${milkPerClick}`;
-
 const upgradeAutoLevel = document.createElement("p");
-upgradeAutoLevel.textContent = ``;
 
 statsContainer.append(upgradeClickLevel, upgradeAutoLevel);
+
+function renderUpgradeStats() {
+  upgradeClickLevel.textContent = `Milk per Click: ${
+    upgradeState.milkPerClick.toFixed(2)
+  }L`;
+
+  upgradeAutoLevel.textContent = `+${
+    (upgradeState.autoMilkers * 0.1).toFixed(1)
+  }L/sec`;
+}
+
+renderUpgradeStats();
 
 const button = document.createElement("button");
 button.textContent = "Milk Me!";
@@ -301,8 +359,8 @@ function milkCow(e: MouseEvent) {
   startBackgroundMusic();
   const before = milk;
   milk += Math.min(
-    milkPerClick,
-    Math.max(0, bucketCapacity - milk),
+    upgradeState.milkPerClick,
+    Math.max(0, upgradeState.bucketCapacity - milk),
     cowHealth / 5,
   );
   const gained = milk - before;
@@ -362,46 +420,9 @@ sellbutton.addEventListener("click", () => {
   wallet.textContent = `Money:$${money}`;
   sellSound.currentTime = 0;
   sellSound.play();
-});
 
-const upgradeButton = document.createElement("button");
-upgradeButton.textContent = `Upgrade:$${upgradeCost}(+0.05 L per click)`;
-
-upgradeButton.addEventListener("click", () => {
-  if (money < upgradeCost) {
-    return;
-  }
-  money -= upgradeCost;
-  milkPerClick = Math.round((milkPerClick + 0.05) * 100) / 100;
-  upgradeCost = Math.ceil(upgradeCost * 1.5);
-  wallet.textContent = `Money:$${money}`;
-  upgradeButton.textContent =
-    `Upgrade: $${upgradeCost} (+0.05 L per click)| Current: ${
-      milkPerClick.toFixed(2)
-    }L`;
-  upgradeClickLevel.textContent = `Milk per Click: ${milkPerClick.toFixed(2)}L`;
-
-  upgradeSound.currentTime = 0;
-  upgradeSound.play();
-});
-
-const autoMilkerButton = document.createElement("button");
-autoMilkerButton.textContent =
-  `Auto-milker: $${autoMilkerCost} (It milks every second!!!!!!!!) `;
-
-autoMilkerButton.addEventListener("click", () => {
-  if (money < autoMilkerCost) {
-    return;
-  }
-  money -= autoMilkerCost;
-  autoMilkers += 1;
-  autoMilkerCost = Math.ceil(autoMilkerCost * 1.5);
-  wallet.textContent = `Money:$${money.toFixed(1)}`;
-  autoMilkerButton.textContent =
-    `Auto-milker: $${autoMilkerCost} (+0.1 L/s) | Owned: ${autoMilkers}`;
-  upgradeAutoLevel.textContent = `+${(autoMilkers * 0.1).toFixed(1)}L/sec`;
-  upgradeAutoSound.currentTime = 0;
-  upgradeAutoSound.play();
+  updateUpgradeButtonStates();
+  saveGame();
 });
 
 const bucketInfo = document.createElement("p");
@@ -454,7 +475,6 @@ milkFill.style.borderRadius = "0 0 11px 11px";
 bucketVisual.appendChild(milkFill);
 cowScene.appendChild(bucketVisual);
 
-const bucketButton = document.createElement("button");
 let lastTIme = performance.now();
 function update(now: number) { //just incase u dont know what is this for Runs every second and updates the milk and money values based on the auto-milkers and other factors
   const seconds = (now - lastTIme) / 1000;
@@ -465,8 +485,8 @@ function update(now: number) { //just incase u dont know what is this for Runs e
     }
   } else {
     const autoGained = Math.min(
-      autoMilkers * 0.1 * seconds,
-      Math.max(0, bucketCapacity - milk),
+      upgradeState.autoMilkers * 0.1 * seconds,
+      Math.max(0, upgradeState.bucketCapacity - milk),
       cowHealth > 0 ? Infinity : 0,
     );
 
@@ -474,17 +494,16 @@ function update(now: number) { //just incase u dont know what is this for Runs e
   }
   message.textContent = `Milk: ${milk.toFixed(1)}L`;
   wallet.textContent = `Money:$${money.toFixed(1)}`;
-  upgradeButton.disabled = money < upgradeCost;
-  autoMilkerButton.disabled = money < autoMilkerCost;
   sellbutton.disabled = milk <= 0;
-  bucketInfo.textContent = `Bucket: ${milk.toFixed(1)} / ${bucketCapacity} L`;
-  const fillPercentage = (milk / bucketCapacity) * 100;
+  bucketInfo.textContent = `Bucket: ${
+    milk.toFixed(1)
+  } / ${upgradeState.bucketCapacity} L`;
+  const fillPercentage = (milk / upgradeState.bucketCapacity) * 100;
   milkFill.style.height = `${Math.min(100, fillPercentage)}%`;
-
-  bucketButton.textContent = `Bigger bucket: $${bucketCost} (+5 L)`;
-  bucketButton.disabled = money < bucketCost;
-  button.disabled = cowHealth <= 0 || isResting || milk >= bucketCapacity;
+  button.disabled = cowHealth <= 0 || isResting ||
+    milk >= upgradeState.bucketCapacity;
   udderButton.disabled = button.disabled;
+  updateUpgradeButtonStates();
 
   restButton.textContent = isResting ? "Resume milking" : "Let the cow rest";
 
@@ -515,33 +534,67 @@ function update(now: number) { //just incase u dont know what is this for Runs e
 }
 requestAnimationFrame(update);
 
-bucketButton.addEventListener("click", () => {
-  if (money < bucketCost) {
+function updateUpgradeButtonStates() {
+  for (const upgrade of upgrades) {
+    const upgradeButton = upgradeButtons.get(upgrade.id);
+
+    if (upgradeButton) {
+      upgradeButton.disabled = money < upgrade.cost;
+    }
+  }
+}
+
+function renderUpgrades() {
+  for (const upgrade of upgrades) {
+    const upgradeButton = upgradeButtons.get(upgrade.id);
+
+    if (!upgradeButton) continue;
+
+    upgradeButton.textContent =
+      `${upgrade.name}: $${upgrade.cost} (${upgrade.description})`;
+  }
+
+  renderUpgradeStats();
+  updateUpgradeButtonStates();
+}
+
+function buyUpgrade(upgrade: Upgrade) {
+  if (money < upgrade.cost) {
     return;
   }
-  money -= bucketCost;
-  bucketCapacity += 5;
-  bucketCost = Math.ceil(bucketCost * 1.5);
+
+  money -= upgrade.cost;
+
+  upgradeState[upgrade.target] += upgrade.amount;
+
+  upgrade.cost = Math.ceil(
+    upgrade.cost * upgrade.costMultiplier,
+  );
+
+  upgrade.sound.currentTime = 0;
+  upgrade.sound.play();
+
   wallet.textContent = `Money:$${money.toFixed(1)}`;
-  bucketButton.textContent = `Bigger bucket: $${bucketCost} (+5 L)`;
-  bucketInfo.textContent = `Bucket: ${milk.toFixed(1)} / ${bucketCapacity} L`;
-  upgradeBucketSound.currentTime = 0;
-  upgradeBucketSound.play();
-});
+
+  renderUpgrades();
+  saveGame();
+}
+
 function saveGame() {
   const progress = {
     milk,
     money,
-    milkPerClick,
-    upgradeCost,
-    autoMilkers,
-    autoMilkerCost,
-    bucketCapacity,
-    bucketCost,
     cowHealth,
     isResting,
     rescueUsed,
+
+    upgradeState: { ...upgradeState },
+
+    upgradeCosts: Object.fromEntries(
+      upgrades.map((upgrade) => [upgrade.id, upgrade.cost]),
+    ),
   };
+
   localStorage.setItem("milkGameProgress", JSON.stringify(progress));
 }
 const savedGame = localStorage.getItem("milkGameProgress");
@@ -550,26 +603,36 @@ if (savedGame !== null) {
   try {
     const progress = JSON.parse(savedGame);
 
-    milk = progress.milk;
+    milk = progress.milk ?? 0;
+    money = progress.money ?? 0;
     cowHealth = progress.cowHealth ?? 100;
     rescueUsed = progress.rescueUsed ?? false;
     isResting = progress.isResting ?? false;
-    money = progress.money;
-    milkPerClick = progress.milkPerClick;
-    upgradeCost = progress.upgradeCost;
-    autoMilkers = progress.autoMilkers;
-    autoMilkerCost = progress.autoMilkerCost;
-    bucketCapacity = progress.bucketCapacity ?? 5;
-    bucketCost = progress.bucketCost ?? 3;
 
-    upgradeClickLevel.textContent = `Milk per Click: ${milkPerClick}`;
-    upgradeAutoLevel.textContent = `+${(autoMilkers * 0.1).toFixed(1)}L/sec`;
+    if (progress.upgradeState) {
+      Object.assign(upgradeState, progress.upgradeState);
+    } else {
+      for (
+        const target of Object.keys(
+          upgradeState,
+        ) as (keyof typeof upgradeState)[]
+      ) {
+        if (typeof progress[target] === "number") {
+          upgradeState[target] = progress[target];
+        }
+      }
+    }
+    for (const upgrade of upgrades) {
+      const legacyCost = upgrade.legacyCostKey
+        ? progress[upgrade.legacyCostKey]
+        : undefined;
 
-    upgradeButton.textContent =
-      `Upgrade: $${upgradeCost} (+0.05 L per click) | Current: ${milkPerClick}L`;
+      const savedCost = progress.upgradeCosts?.[upgrade.id] ?? legacyCost;
 
-    autoMilkerButton.textContent =
-      `Auto-milker: $${autoMilkerCost} (+0.1 L/s) | Owned: ${autoMilkers}`;
+      if (typeof savedCost === "number") {
+        upgrade.cost = savedCost;
+      }
+    }
   } catch {
     console.log("Could not load saved progress.");
   }
@@ -582,18 +645,26 @@ shop.style.flexWrap = "wrap";
 shop.style.gap = "12px";
 shop.style.marginTop = "24px";
 
-shop.append(upgradeButton, autoMilkerButton, bucketButton);
+for (const upgrade of upgrades) {
+  const upgradeButton = document.createElement("button");
 
-for (const item of [upgradeButton, autoMilkerButton, bucketButton]) {
-  item.style.width = "220px";
-  item.style.minHeight = "90px";
-  item.style.padding = "16px";
-  item.style.backgroundColor = "#e0ead8";
-  item.style.color = "#30452b";
-  item.style.border = "1px solid #b5c7aa";
-  item.style.borderRadius = "12px";
-  item.style.fontSize = "15px";
+  upgradeButton.style.width = "220px";
+  upgradeButton.style.minHeight = "90px";
+  upgradeButton.style.padding = "16px";
+  upgradeButton.style.backgroundColor = "#e0ead8";
+  upgradeButton.style.color = "#30452b";
+  upgradeButton.style.border = "1px solid #b5c7aa";
+  upgradeButton.style.borderRadius = "12px";
+
+  upgradeButton.addEventListener("click", () => {
+    buyUpgrade(upgrade);
+  });
+
+  shop.append(upgradeButton);
+  upgradeButtons.set(upgrade.id, upgradeButton);
 }
+renderUpgrades();
+
 const feedPanel = document.createElement("div");
 feedPanel.style.display = "flex";
 feedPanel.style.flexDirection = "column";
@@ -641,6 +712,6 @@ app.append(
   button,
   sellbutton,
   restButton,
-  restartButton,
   shop,
+  restartButton,
 );
