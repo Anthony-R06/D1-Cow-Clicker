@@ -193,19 +193,19 @@ const upgradeState: Record<Upgrade["target"], number> = {
 const restButton = document.createElement("button");
 restButton.textContent = "Let the cow rest";
 restButton.addEventListener("click", () => {
-    if (cowHealth <= 0) {
-        return;
-    }
-    isResting = !isResting;
-    if (isResting) {
-        snoringSound.currentTime = 0;
-        snoringSound.play();
-        restButton.textContent = "Wake the cow";
-    } else {
-        snoringSound.pause();
-        snoringSound.currentTime = 0;
-        restButton.textContent = "Let the cow rest";
-    }
+  if (cowHealth <= 0) {
+    return;
+  }
+  isResting = !isResting;
+  if (isResting) {
+    snoringSound.currentTime = 0;
+    snoringSound.play();
+    restButton.textContent = "Wake the cow";
+  } else {
+    snoringSound.pause();
+    snoringSound.currentTime = 0;
+    restButton.textContent = "Let the cow rest";
+  }
 });
 const healthInfo = document.createElement("p");
 const message = document.createElement("p");
